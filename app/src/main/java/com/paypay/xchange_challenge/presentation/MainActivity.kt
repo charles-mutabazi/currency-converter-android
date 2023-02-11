@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,7 +21,6 @@ import com.paypay.xchange_challenge.R
 import com.paypay.xchange_challenge.presentation.home.HomeViewModel
 import com.paypay.xchange_challenge.presentation.theme.CurrencyXchangeTheme
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.compose.foundation.lazy.items
 
 
 @AndroidEntryPoint
@@ -84,7 +84,7 @@ fun ExchangeRateScreen(
                 .fillMaxWidth()
                 .padding(vertical = 16.dp)
         ) {
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = { viewModel.deleteCurrencyTable() }) {
                 Text("Get Rates")
             }
         }

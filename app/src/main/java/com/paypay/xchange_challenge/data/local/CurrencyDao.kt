@@ -4,10 +4,7 @@
  */
 package com.paypay.xchange_challenge.data.local
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 
 @Dao
 interface CurrencyDao {
@@ -17,5 +14,6 @@ interface CurrencyDao {
     @Query("SELECT * FROM currency_listing")
     suspend fun getCurrencyListings(): List<CurrencyListingEntity>
 
-
+    @Query("DELETE FROM currency_listing")
+    suspend fun deleteCurrencyTable()
 }

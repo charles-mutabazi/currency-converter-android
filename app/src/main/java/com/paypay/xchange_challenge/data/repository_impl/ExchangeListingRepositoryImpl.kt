@@ -31,13 +31,10 @@ class ExchangeListingRepositoryImpl @Inject constructor(
         emit(Resource.Loading(true))
         val localListings = dao.getCurrencyListings()
 
-        emit(Resource.Success(localListings.map { it.toCurrencyListing() }))
-
         val shouldLoadFromCache = !fetchFromRemote && localListings.isNotEmpty()
 
         if (shouldLoadFromCache) {
-            println("===Loading from cache=== ${localListings.first()}")
-            emit(Resource.Loading(false))
+            emit(Resource.Success(localListings.map { it.toCurrencyListing() }))
             return@flow
         }
 
@@ -62,6 +59,11 @@ class ExchangeListingRepositoryImpl @Inject constructor(
                 it.toCurrencyListingEntity()
             })
 
+            println(
+                "Remote currencies: ${
+                    dao.getCurrencyListings().map { it.toCurrencyListing() }.first()
+                }"
+            )
             emit(Resource.Success(
                 data = dao.getCurrencyListings().map { it.toCurrencyListing() }
             ))
@@ -70,5 +72,10 @@ class ExchangeListingRepositoryImpl @Inject constructor(
 
     override suspend fun getCurrencyRate(from: String, to: String): Double {
         TODO("Not yet implemented")
+    }
+
+    override fun deleteCurrencyTable() = flow {
+        dao.deleteCurrencyTable()
+        emit(Resource.Success(true))
     }
 }

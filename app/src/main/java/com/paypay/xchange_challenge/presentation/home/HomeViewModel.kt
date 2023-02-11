@@ -54,7 +54,36 @@ class HomeViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
+
+    fun deleteCurrencyTable() {
+        exchangeRepo.deleteCurrencyTable().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _getCurrentListing = CurrencyListState(
+                        isLoading = false,
+                        currencies = emptyList()
+                    )
+                }
+
+                is Resource.Error -> {
+                    _getCurrentListing = CurrencyListState(
+                        isLoading = false,
+                        error = result.message ?: "An unexpected error occurred"
+                    )
+                }
+
+                is Resource.Loading -> {
+                    _getCurrentListing = CurrencyListState(
+                        isLoading = true
+                    )
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
 }
+
+
 
 data class CurrencyListState(
     val isLoading: Boolean = false,
