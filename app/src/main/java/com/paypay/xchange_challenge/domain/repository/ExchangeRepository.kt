@@ -5,8 +5,13 @@
 package com.paypay.xchange_challenge.domain.repository
 
 import com.paypay.xchange_challenge.domain.model.CurrencyListing
+import com.paypay.xchange_challenge.util.Resource
+import kotlinx.coroutines.flow.Flow
 
-interface CurrencyRepository {
-    suspend fun getCurrencyList(): List<CurrencyListing>
+interface ExchangeRepository {
+    fun getCurrencyList(
+        fetchFromRemote: Boolean,
+        query: String
+    ): Flow<Resource<List<CurrencyListing>>>
     suspend fun getCurrencyRate(from: String, to: String): Double
 }

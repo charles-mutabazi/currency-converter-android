@@ -8,7 +8,7 @@ import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface ExchangeRateApi {
+interface ExchangeApi {
     @GET("latest.json")
     suspend fun getExchangeRates(
         @Query("app_id") appId: String,

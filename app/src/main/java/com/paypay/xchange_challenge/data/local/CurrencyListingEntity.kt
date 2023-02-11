@@ -9,7 +9,7 @@ import androidx.room.Entity
 
 @Entity(tableName = "currency_listing", primaryKeys = ["symbol"])
 data class CurrencyListingEntity(
-    val name: String,
     val symbol: String,
-    val rate: Double
+    val rate: Double,
+    val name: String,
 )
