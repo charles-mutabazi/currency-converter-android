@@ -6,6 +6,7 @@ package com.paypay.xchange_challenge.data.repository_impl
 
 import com.paypay.xchange_challenge.data.local.ExchangeDatabase
 import com.paypay.xchange_challenge.data.mapper.toCurrencyListing
+import com.paypay.xchange_challenge.data.mapper.toCurrencyListingEntity
 import com.paypay.xchange_challenge.data.remote.ExchangeApi
 import com.paypay.xchange_challenge.domain.model.CurrencyListing
 import com.paypay.xchange_challenge.domain.repository.ExchangeRepository
@@ -30,28 +31,40 @@ class ExchangeListingRepositoryImpl @Inject constructor(
         emit(Resource.Loading(true))
         val localListings = dao.getCurrencyListings()
 
-        emit( Resource.Success(
-            data = localListings.map { it.toCurrencyListing() }
-        ))
+        emit(Resource.Success(localListings.map { it.toCurrencyListing() }))
 
         val shouldLoadFromCache = !fetchFromRemote && localListings.isNotEmpty()
 
         if (shouldLoadFromCache) {
+            println("===Loading from cache=== ${localListings.first()}")
             emit(Resource.Loading(false))
             return@flow
         }
 
         //Get from remote using Ktor
-        try {
-            val response = client.get(ExchangeApi.BASE_URL + "currencies.json").body<Map<String, String>>()
-            val currencyListings = response.map {
+        val remoteCurrencies = try {
+            val response =
+                client.get(ExchangeApi.BASE_URL + "currencies.json").body<Map<String, String>>()
+            response.map {
                 CurrencyListing(symbol = it.key, rate = 0.0, name = it.value)
             }
-            emit(Resource.Success(currencyListings))
         } catch (e: IOException) {
             emit(Resource.Error(e.message ?: "An unknown error occurred"))
+            null
         } catch (e: HttpException) {
             emit(Resource.Error(e.message ?: "An unknown error occurred"))
+            null
+        }
+
+        // cache the result to local db
+        remoteCurrencies?.let { listing ->
+            dao.insertCurrencyListing(listing.map {
+                it.toCurrencyListingEntity()
+            })
+
+            emit(Resource.Success(
+                data = dao.getCurrencyListings().map { it.toCurrencyListing() }
+            ))
         }
     }
 
