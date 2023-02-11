@@ -26,7 +26,7 @@ class ExchangeListingRepositoryImpl @Inject constructor(
     private val client: HttpClient
 ): ExchangeRepository {
     private val dao = db.currencyDao
-    override fun getCurrencyList(fetchFromRemote: Boolean, query: String): Flow<Resource<List<CurrencyListing>>> = flow {
+    override fun getCurrencyList(fetchFromRemote: Boolean): Flow<Resource<List<CurrencyListing>>> = flow {
         emit(Resource.Loading(true))
         val localListings = dao.getCurrencyListings()
 

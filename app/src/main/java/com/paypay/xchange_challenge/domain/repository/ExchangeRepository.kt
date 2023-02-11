@@ -9,9 +9,6 @@ import com.paypay.xchange_challenge.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface ExchangeRepository {
-    fun getCurrencyList(
-        fetchFromRemote: Boolean,
-        query: String
-    ): Flow<Resource<List<CurrencyListing>>>
+    fun getCurrencyList(fetchFromRemote: Boolean = false): Flow<Resource<List<CurrencyListing>>>
     suspend fun getCurrencyRate(from: String, to: String): Double
 }

@@ -1,4 +1,4 @@
-package com.paypay.xchange_challenge
+package com.paypay.xchange_challenge.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,8 +15,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.paypay.xchange_challenge.R
+import com.paypay.xchange_challenge.presentation.home.HomeViewModel
 import com.paypay.xchange_challenge.presentation.theme.CurrencyXchangeTheme
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.compose.foundation.lazy.items
 
 
 @AndroidEntryPoint
@@ -39,7 +43,9 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExchangeRateScreen() {
+fun ExchangeRateScreen(
+    viewModel: HomeViewModel = hiltViewModel()
+) {
     var amount by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
@@ -74,7 +80,9 @@ fun ExchangeRateScreen() {
 
         Row(
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
         ) {
             Button(onClick = { /*TODO*/ }) {
                 Text("Get Rates")
@@ -82,33 +90,12 @@ fun ExchangeRateScreen() {
         }
 
 
-        CurrencyList()
+        CurrencyList(vm = viewModel)
     }
 }
 
 @Composable
-fun CurrencyList() {
-    val currencies = mapOf(
-        "USD" to "US Dollar",
-        "EUR" to "Euro",
-        "JPY" to "Japanese Yen",
-        "GBP" to "British Pound",
-        "AUD" to "Australian Dollar",
-        "CAD" to "Canadian Dollar",
-        "CHF" to "Swiss Franc",
-        "CNY" to "Chinese Yuan",
-        "HKD" to "Hong Kong Dollar",
-        "NZD" to "New Zealand Dollar",
-        "SEK" to "Swedish Krona",
-        "SGD" to "Singapore Dollar",
-        "KRW" to "South Korean Won",
-        "MXN" to "Mexican Peso",
-        "INR" to "Indian Rupee",
-        "RUB" to "Russian Ruble",
-        "ZAR" to "South African Rand",
-        "TRY" to "Turkish Lira",
-        "BRL" to "Brazilian Real"
-    )
+fun CurrencyList(vm: HomeViewModel) {
 
     // LazyColumn of currencies
     Column {
@@ -132,14 +119,14 @@ fun CurrencyList() {
         }
         Divider()
         LazyColumn {
-            item {
-                // Header
-
+            if (vm.getCurrentListing.currencies.isEmpty()) {
+                items(1) {
+                    Text(text = "No data")
+                }
+                return@LazyColumn
             }
-            items(currencies.keys.size) { index ->
-                val currency = currencies.keys.elementAt(index)
-                val currencyName = currencies.values.elementAt(index)
 
+            items(items = vm.getCurrentListing.currencies) {currency ->
                 // Row of currency
                 Row(
                     modifier = Modifier
@@ -147,16 +134,16 @@ fun CurrencyList() {
                         .padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(text = "$currencyName ($currency)")
+                    Text(text = "${currency.name} (${currency.symbol})")
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = "321.00",
+                        text = "${currency.rate}",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                if (index != currencies.keys.size - 1) {
+                if (currency != vm.getCurrentListing.currencies.last()) {
                     Divider()
                 }
             }
