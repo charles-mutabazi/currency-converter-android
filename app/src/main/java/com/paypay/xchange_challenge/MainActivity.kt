@@ -43,6 +43,12 @@ fun ExchangeRateScreen() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        Text(
+            text = "Currency Xchange",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
         OutlinedTextField(
             placeholder = { Text("Enter amount") },
             value = amount,
@@ -64,7 +70,7 @@ fun ExchangeRateScreen() {
         )
 
         Row(
-            horizontalArrangement = Arrangement.End,
+            horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
         ) {
             Button(onClick = { /*TODO*/ }) {
@@ -79,7 +85,7 @@ fun ExchangeRateScreen() {
 
 @Composable
 fun CurrencyList() {
-    val currencies = mapOf<String, String>(
+    val currencies = mapOf(
         "USD" to "US Dollar",
         "EUR" to "Euro",
         "JPY" to "Japanese Yen",
@@ -155,11 +161,6 @@ fun CurrencyList() {
     }
 
 }
-
-data class Currency(
-    val symbol: String,
-    val name: Int
-)
 
 @Preview(showBackground = true)
 @Composable
