@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,6 +48,8 @@ fun ExchangeRateScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     var amount by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    val currencies = viewModel.getCurrentListing.currencies
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,31 +62,59 @@ fun ExchangeRateScreen(
             modifier = Modifier.padding(bottom = 32.dp)
         )
         OutlinedTextField(
-            placeholder = { Text("Enter amount") },
+            placeholder = {
+                Text(
+                    text = "Enter amount",
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
             value = amount,
+            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
             onValueChange = { amount = it },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             leadingIcon = {
-                TextButton(onClick = { /*TODO*/ }) {
-                    Text(text = "JPY", modifier = Modifier.padding(end = 8.dp))
+                Box {
+
+                }
+                TextButton(onClick = { expanded = true }) {
+                    Text(text = viewModel.selectedCurrency, modifier = Modifier.padding(end = 8.dp))
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
-                        contentDescription = "JPY",
+                        contentDescription = "currency symbol",
                         modifier = Modifier
                             .size(24.dp)
                             .clip(MaterialTheme.shapes.small)
                     )
                 }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    currencies.forEach { currency ->
+                        DropdownMenuItem(text = { Text(currency.symbol) }, onClick = {
+                            viewModel.selectedCurrency = currency.symbol
+                            expanded = false
+                        })
+                    }
+                }
             }
         )
 
         Row(
-            horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp)
         ) {
+            Column {
+                Text(text = "Base Currency")
+                Text(
+                    text = "USD", //hardcoded for now
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
             Button(onClick = { viewModel.deleteCurrencyTable() }) {
                 Text("Get Rates")
             }
@@ -126,7 +157,7 @@ fun CurrencyList(vm: HomeViewModel) {
                 return@LazyColumn
             }
 
-            items(items = vm.getCurrentListing.currencies) {currency ->
+            items(items = vm.getCurrentListing.currencies) { currency ->
                 // Row of currency
                 Row(
                     modifier = Modifier

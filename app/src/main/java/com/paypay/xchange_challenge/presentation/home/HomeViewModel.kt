@@ -22,6 +22,7 @@ class HomeViewModel @Inject constructor(
     private val exchangeRepo: ExchangeRepository
 ) : ViewModel() {
 
+    var selectedCurrency by mutableStateOf("USD")
     private var _getCurrentListing by mutableStateOf(CurrencyListState())
     val getCurrentListing get() = _getCurrentListing
 
