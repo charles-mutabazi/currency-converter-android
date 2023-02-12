@@ -9,8 +9,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -59,68 +61,73 @@ fun ExchangeRateScreen(
             text = "Currency Xchange",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 32.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
-        OutlinedTextField(
-            placeholder = {
-                Text(
-                    text = "Enter amount",
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            value = amount,
-            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-            onValueChange = { amount = it },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            leadingIcon = {
-                Box {
+        Card(modifier = Modifier.padding(bottom = 16.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                OutlinedTextField(
+                    placeholder = {
+                        Text(
+                            text = "Enter amount",
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    value = amount,
+                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
+                    onValueChange = { amount = it; viewModel.amount = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    leadingIcon = {
+                        Box {
 
-                }
-                TextButton(onClick = { expanded = true }) {
-                    Text(text = viewModel.selectedCurrency, modifier = Modifier.padding(end = 8.dp))
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
-                        contentDescription = "currency symbol",
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(MaterialTheme.shapes.small)
-                    )
-                }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                        }
+                        TextButton(onClick = { expanded = true }) {
+                            Text(
+                                text = viewModel.selectedCurrency,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
+                                contentDescription = "currency symbol",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(MaterialTheme.shapes.small)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            currencies.forEach { currency ->
+                                DropdownMenuItem(text = { Text(currency.symbol) }, onClick = {
+                                    viewModel.selectedCurrency = currency.symbol
+                                    expanded = false
+                                })
+                            }
+                        }
+                    }
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
                 ) {
-                    currencies.forEach { currency ->
-                        DropdownMenuItem(text = { Text(currency.symbol) }, onClick = {
-                            viewModel.selectedCurrency = currency.symbol
-                            expanded = false
-                        })
+                    Column {
+                        Text(text = "Base Currency")
+                        Text(
+                            text = "USD", //hardcoded for now
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Button(onClick = { viewModel.convertCurrency() }) {
+                        Text("Get Rates")
                     }
                 }
             }
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        ) {
-            Column {
-                Text(text = "Base Currency")
-                Text(
-                    text = "USD", //hardcoded for now
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Button(onClick = { viewModel.deleteCurrencyTable() }) {
-                Text("Get Rates")
-            }
         }
-
-
         CurrencyList(vm = viewModel)
     }
 }
@@ -130,34 +137,27 @@ fun CurrencyList(vm: HomeViewModel) {
 
     // LazyColumn of currencies
     Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "Currency",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "Rate",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        Divider()
         LazyColumn {
-            if (vm.getCurrentListing.currencies.isEmpty()) {
-                items(1) {
-                    Text(text = "No data")
+            if (vm.convertedAmountList.isEmpty()) {
+
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Please enter amount and click Get Rates",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
                 }
                 return@LazyColumn
             }
 
-            items(items = vm.getCurrentListing.currencies) { currency ->
+            items(items = vm.convertedAmountList) { currency ->
                 // Row of currency
                 Row(
                     modifier = Modifier
@@ -165,22 +165,33 @@ fun CurrencyList(vm: HomeViewModel) {
                         .padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(text = "${currency.name} (${currency.symbol})")
+                    Column {
+                        Text(
+                            text = currency.symbol,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = currency.name,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color.Gray
+                        )
+                    }
+
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = "${currency.rate}",
+                        text = "%.2f".format(currency.rate), //<-- formatted to 2 decimal places
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                if (currency != vm.getCurrentListing.currencies.last()) {
+                if (currency != vm.convertedAmountList.last()) {
                     Divider()
                 }
             }
         }
     }
-
 }
 
 @Preview(showBackground = true)

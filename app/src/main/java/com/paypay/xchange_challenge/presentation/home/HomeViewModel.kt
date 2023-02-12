@@ -25,6 +25,8 @@ class HomeViewModel @Inject constructor(
     var selectedCurrency by mutableStateOf("USD")
     private var _getCurrentListing by mutableStateOf(CurrencyListState())
     val getCurrentListing get() = _getCurrentListing
+    var amount by mutableStateOf("") //<- amount to convert
+    var convertedAmountList by mutableStateOf(_getCurrentListing.currencies) //<- converted amount
 
     init {
         getExchangeRates()
@@ -82,8 +84,30 @@ class HomeViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
-}
 
+    fun convertCurrency() {
+        //change string to double
+        val amountToConvert = amount.toDoubleOrNull()
+        amountToConvert?.let {
+            //get the selected currency
+            val selectedCurrency = getCurrentListing.currencies.find { currency ->
+                currency.symbol == selectedCurrency
+            }
+
+            selectedCurrency?.let {
+                val selectedInUSD = amountToConvert / selectedCurrency.rate
+
+                //convert to other currencies
+                val convertedList = getCurrentListing.currencies.map { currency ->
+                    val convertedAmount = selectedInUSD * currency.rate
+                    currency.copy(rate = convertedAmount)
+                }
+                convertedAmountList = convertedList
+            }
+        }
+
+    }
+}
 
 
 data class CurrencyListState(
