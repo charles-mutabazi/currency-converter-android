@@ -4,12 +4,15 @@
  */
 package com.paypay.xchange_challenge.data.repository_impl
 
+import android.util.Log
 import com.paypay.xchange_challenge.data.local.ExchangeDatabase
 import com.paypay.xchange_challenge.data.mapper.toCurrencyListing
 import com.paypay.xchange_challenge.data.mapper.toCurrencyListingEntity
-import com.paypay.xchange_challenge.data.remote.ExchangeApi
+import com.paypay.xchange_challenge.data.remote.dto.RateDTO
 import com.paypay.xchange_challenge.domain.model.CurrencyListing
 import com.paypay.xchange_challenge.domain.repository.ExchangeRepository
+import com.paypay.xchange_challenge.util.APP_ID
+import com.paypay.xchange_challenge.util.BASE_URL
 import com.paypay.xchange_challenge.util.Resource
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -23,7 +26,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ExchangeListingRepositoryImpl @Inject constructor(
-    private val db: ExchangeDatabase,
+    db: ExchangeDatabase,
     private val client: HttpClient
 ): ExchangeRepository {
     private val dao = db.currencyDao
@@ -41,7 +44,7 @@ class ExchangeListingRepositoryImpl @Inject constructor(
         //Get from remote using Ktor
         val remoteCurrencies = try {
             val response =
-                client.get(ExchangeApi.BASE_URL + "currencies.json").body<Map<String, String>>()
+                client.get("$BASE_URL/currencies.json").body<Map<String, String>>()
             response.map {
                 CurrencyListing(symbol = it.key, rate = 0.0, name = it.value)
             }
@@ -59,14 +62,30 @@ class ExchangeListingRepositoryImpl @Inject constructor(
                 it.toCurrencyListingEntity()
             })
 
-            println(
-                "Remote currencies: ${
-                    dao.getCurrencyListings().map { it.toCurrencyListing() }.first()
-                }"
-            )
+            //update the rates
+            getLatestRates()?.let { rates ->
+                dao.updateCurrencyListingTx(rates)
+            }
+
             emit(Resource.Success(
                 data = dao.getCurrencyListings().map { it.toCurrencyListing() }
             ))
+        }
+    }
+
+    /**
+     * Get the latest rates from the api
+     */
+    private suspend fun getLatestRates(): List<Map<String, Double>>? {
+        return try {
+            val response = client.get("$BASE_URL/latest.json?app_id=$APP_ID")
+                .body<RateDTO>()
+            response.rates.map {
+                mapOf(it.key to it.value)
+            }
+        } catch (e: HttpException) {
+            Log.e("ExchangeRepositoryImpl", "getLatestRates: ${e.message}")
+            null
         }
     }
 

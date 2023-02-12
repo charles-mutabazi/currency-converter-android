@@ -16,4 +16,16 @@ interface CurrencyDao {
 
     @Query("DELETE FROM currency_listing")
     suspend fun deleteCurrencyTable()
+
+    @Query("UPDATE currency_listing SET rate = :rate WHERE symbol = :symbol")
+    suspend fun updateCurrencyListing(symbol: String, rate: Double)
+
+    @Transaction
+    suspend fun updateCurrencyListingTx(currencies: List<Map<String, Double>>) {
+        currencies.forEach { currency ->
+            currency.forEach { (symbol, rate) ->
+                updateCurrencyListing(symbol, rate)
+            }
+        }
+    }
 }
