@@ -89,10 +89,6 @@ class ExchangeListingRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getCurrencyRate(from: String, to: String): Double {
-        TODO("Not yet implemented")
-    }
-
     override fun deleteCurrencyTable() = flow {
         dao.deleteCurrencyTable()
         emit(Resource.Success(true))
