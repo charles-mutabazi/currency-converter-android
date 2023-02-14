@@ -4,37 +4,31 @@
  */
 package com.paypay.xchange_challenge.di
 
-import android.app.Application
 import androidx.room.Room
 import com.paypay.xchange_challenge.data.local.ExchangeDatabase
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import com.paypay.xchange_challenge.data.repository_impl.ExchangeListingRepositoryImpl
+import com.paypay.xchange_challenge.domain.repository.ExchangeRepository
+import com.paypay.xchange_challenge.presentation.home.HomeViewModel
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
-import javax.inject.Singleton
+import org.koin.android.ext.koin.androidApplication
+import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.dsl.module
 
-@Module
-@InstallIn(SingletonComponent::class)
-class AppModule {
-
-    @Provides
-    @Singleton
-    fun provideCurrencyExchangeDatabase(app: Application) = Room.databaseBuilder(
-            app,
+val appModule = module {
+    single {
+        Room.databaseBuilder(
+            androidApplication(),
             ExchangeDatabase::class.java,
             "currency_exchange.db"
         ).build()
-
-    @Singleton
-    @Provides
-    fun provideKtorClient(): HttpClient {
-        val client = HttpClient(Android) {
+    }
+    single {
+        HttpClient(Android) {
             install(HttpTimeout) {
                 requestTimeoutMillis = 2000
             }
@@ -46,6 +40,13 @@ class AppModule {
                 })
             }
         }
-        return client
+    }
+
+    single<ExchangeRepository> {
+        ExchangeListingRepositoryImpl(get(), get())
+    }
+
+    viewModel {
+        HomeViewModel(get())
     }
 }

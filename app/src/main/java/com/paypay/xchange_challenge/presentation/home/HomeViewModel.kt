@@ -12,13 +12,10 @@ import androidx.lifecycle.viewModelScope
 import com.paypay.xchange_challenge.domain.model.CurrencyListing
 import com.paypay.xchange_challenge.domain.repository.ExchangeRepository
 import com.paypay.xchange_challenge.util.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import javax.inject.Inject
 
-@HiltViewModel
-class HomeViewModel @Inject constructor(
+class HomeViewModel(
     private val exchangeRepo: ExchangeRepository
 ) : ViewModel() {
 

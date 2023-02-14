@@ -16,14 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.paypay.xchange_challenge.R
 import com.paypay.xchange_challenge.presentation.home.components.CurrencyList
+import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenComposable(
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = getViewModel()
 ) {
     var amount by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }

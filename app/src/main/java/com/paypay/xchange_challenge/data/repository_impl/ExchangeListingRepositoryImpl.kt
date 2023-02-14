@@ -19,22 +19,19 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import retrofit2.HttpException
 import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class ExchangeListingRepositoryImpl @Inject constructor(
+class ExchangeListingRepositoryImpl(
     db: ExchangeDatabase,
     private val client: HttpClient
-): ExchangeRepository {
+) : ExchangeRepository {
     private val dao = db.currencyDao
-    override fun getCurrencyList(fetchFromRemote: Boolean): Flow<Resource<List<CurrencyListing>>> = flow {
-        emit(Resource.Loading(true))
-        val localListings = dao.getCurrencyListings()
+    override fun getCurrencyList(fetchFromRemote: Boolean): Flow<Resource<List<CurrencyListing>>> =
+        flow {
+            emit(Resource.Loading(true))
+            val localListings = dao.getCurrencyListings()
 
-        val shouldLoadFromCache = !fetchFromRemote && localListings.isNotEmpty()
+            val shouldLoadFromCache = !fetchFromRemote && localListings.isNotEmpty()
 
         if (shouldLoadFromCache) {
             emit(Resource.Success(localListings.map { it.toCurrencyListing() }))
@@ -49,9 +46,6 @@ class ExchangeListingRepositoryImpl @Inject constructor(
                 CurrencyListing(symbol = it.key, rate = 0.0, name = it.value)
             }
         } catch (e: IOException) {
-            emit(Resource.Error(e.message ?: "An unknown error occurred"))
-            null
-        } catch (e: HttpException) {
             emit(Resource.Error(e.message ?: "An unknown error occurred"))
             null
         }
@@ -76,14 +70,14 @@ class ExchangeListingRepositoryImpl @Inject constructor(
     /**
      * Get the latest rates from the api
      */
-    private suspend fun getLatestRates(): List<Map<String, Double>>? {
+    suspend fun getLatestRates(): List<Map<String, Double>>? {
         return try {
             val response = client.get("$BASE_URL/latest.json?app_id=$APP_ID")
                 .body<RateDTO>()
             response.rates.map {
                 mapOf(it.key to it.value)
             }
-        } catch (e: HttpException) {
+        } catch (e: IOException) {
             Log.e("ExchangeRepositoryImpl", "getLatestRates: ${e.message}")
             null
         }
