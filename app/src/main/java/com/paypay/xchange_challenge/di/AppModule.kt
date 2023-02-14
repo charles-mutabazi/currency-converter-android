@@ -9,6 +9,7 @@ import com.paypay.xchange_challenge.data.local.ExchangeDatabase
 import com.paypay.xchange_challenge.data.repository_impl.ExchangeListingRepositoryImpl
 import com.paypay.xchange_challenge.domain.repository.ExchangeRepository
 import com.paypay.xchange_challenge.presentation.home.HomeViewModel
+import com.paypay.xchange_challenge.worker.SyncWorker
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.plugins.*
@@ -17,6 +18,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.androidx.workmanager.dsl.worker
 import org.koin.dsl.module
 
 val appModule = module {
@@ -49,4 +51,6 @@ val appModule = module {
     viewModel {
         HomeViewModel(get())
     }
+
+    worker { SyncWorker(get(), get(), get()) }
 }

@@ -5,35 +5,33 @@
 package com.paypay.xchange_challenge
 
 import android.app.Application
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.paypay.xchange_challenge.di.appModule
+import com.paypay.xchange_challenge.worker.SyncWorker
 import org.koin.android.ext.koin.androidContext
+import org.koin.androidx.workmanager.koin.workManagerFactory
+import org.koin.core.component.KoinComponent
 import org.koin.core.context.startKoin
+import java.util.concurrent.TimeUnit
 
-class CurrencyXchangeApplication : Application() {
+class CurrencyXchangeApplication : Application(), KoinComponent {
     override fun onCreate() {
         super.onCreate()
         startKoin {
             androidContext(this@CurrencyXchangeApplication)
+            workManagerFactory()
             modules(appModule)
         }
-//        scheduleWork()
+        scheduleWork()
     }
 
-//    @Inject
-//    lateinit var workerFactory: HiltWorkerFactory
-//
-//    override fun getWorkManagerConfiguration() =
-//        Configuration.Builder()
-//            .setWorkerFactory(workerFactory)
-//            .build()
-//
-//    //schedule work to sync data every 30 minutes
-//    @SuppressLint("InvalidPeriodicWorkRequestInterval")
-//    private fun scheduleWork() {
-//        val workRequest = PeriodicWorkRequest
-//            .Builder(SyncWorker::class.java, REFRESH_INTERVAL, TimeUnit.MINUTES)
-//            .build()
-//
-//        WorkManager.getInstance(applicationContext).enqueue(workRequest)
-//    }
+    //schedule work to sync data every 30 minutes
+    private fun scheduleWork() {
+        val workRequest = PeriodicWorkRequest
+            .Builder(SyncWorker::class.java, 15, TimeUnit.MINUTES)
+            .build()
+
+        WorkManager.getInstance(applicationContext).enqueue(workRequest)
+    }
 }
