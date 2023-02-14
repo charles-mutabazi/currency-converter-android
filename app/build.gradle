@@ -47,6 +47,10 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1,LICENSE-notice.md,LICENSE.md}'
         }
     }
+
+//    testOptions {
+//        unitTests.returnDefaultValues = true
+//    }
 }
 
 dependencies {
@@ -72,6 +76,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4"
     testImplementation 'junit:junit:4.13.2'
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
 
     //WorkManager
     def work_version = "2.8.0"
@@ -105,6 +110,8 @@ dependencies {
     // Koin Tests
     testImplementation "io.insert-koin:koin-test:$koin_android_version"
     testImplementation "io.insert-koin:koin-test-junit4:$koin_android_version"
+//    androidTestImplementation "io.koin:koin-test:$koin_android_version"
+    androidTestImplementation "io.insert-koin:koin-test-junit4:3.3.3"
 
     // Optional -- Mockk framework
     testImplementation "io.mockk:mockk:1.13.3"

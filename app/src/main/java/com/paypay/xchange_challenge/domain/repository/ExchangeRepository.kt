@@ -10,5 +10,4 @@ import kotlinx.coroutines.flow.Flow
 
 interface ExchangeRepository {
     fun getCurrencyList(fetchFromRemote: Boolean = false): Flow<Resource<List<CurrencyListing>>>
-    fun deleteCurrencyTable(): Flow<Resource<Boolean>>
 }

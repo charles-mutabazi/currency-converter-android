@@ -51,5 +51,9 @@ val appModule = module {
         HomeViewModel(get())
     }
 
+    factory {
+        HomeViewModel(get())
+    }
+
     worker { SyncWorker(get(), get(), get()) }
 }

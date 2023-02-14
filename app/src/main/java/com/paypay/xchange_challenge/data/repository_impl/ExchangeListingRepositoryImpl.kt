@@ -22,48 +22,50 @@ import kotlinx.coroutines.flow.flow
 import java.io.IOException
 
 class ExchangeListingRepositoryImpl(
-    db: ExchangeDatabase,
+    private val db: ExchangeDatabase,
     private val client: HttpClient
 ) : ExchangeRepository {
-    private val dao = db.currencyDao
     override fun getCurrencyList(fetchFromRemote: Boolean): Flow<Resource<List<CurrencyListing>>> =
         flow {
             emit(Resource.Loading(true))
-            val localListings = dao.getCurrencyListings()
+            val localListings = db.currencyDao.getCurrencyListings()
 
             val shouldLoadFromCache = !fetchFromRemote && localListings.isNotEmpty()
 
-        if (shouldLoadFromCache) {
-            emit(Resource.Success(localListings.map { it.toCurrencyListing() }))
-            return@flow
+            if (shouldLoadFromCache) {
+                emit(Resource.Success(localListings.map { it.toCurrencyListing() }))
+                return@flow
+            }
+
+            // cache the result to local db
+            getRemoteCurrencies()?.let { listing ->
+                db.currencyDao.insertCurrencyListing(listing.map {
+                    it.toCurrencyListingEntity()
+                })
+
+                //update the rates
+                getLatestRates()?.let { rates ->
+                    db.currencyDao.updateCurrencyListingTx(rates)
+                }
+
+                emit(Resource.Success(
+                    data = db.currencyDao.getCurrencyListings().map { it.toCurrencyListing() }
+                ))
+            }
         }
 
-        //Get from remote using Ktor
-        val remoteCurrencies = try {
+
+    //this should go in remote data source
+    suspend fun getRemoteCurrencies(): List<CurrencyListing>? {
+        return try {
             val response =
                 client.get("$BASE_URL/currencies.json").body<Map<String, String>>()
             response.map {
                 CurrencyListing(symbol = it.key, rate = 0.0, name = it.value)
             }
         } catch (e: IOException) {
-            emit(Resource.Error(e.message ?: "An unknown error occurred"))
+            Log.e("ExchangeRepositoryImpl", "getRemoteCurrencies: ${e.message}")
             null
-        }
-
-        // cache the result to local db
-        remoteCurrencies?.let { listing ->
-            dao.insertCurrencyListing(listing.map {
-                it.toCurrencyListingEntity()
-            })
-
-            //update the rates
-            getLatestRates()?.let { rates ->
-                dao.updateCurrencyListingTx(rates)
-            }
-
-            emit(Resource.Success(
-                data = dao.getCurrencyListings().map { it.toCurrencyListing() }
-            ))
         }
     }
 
@@ -81,10 +83,5 @@ class ExchangeListingRepositoryImpl(
             Log.e("ExchangeRepositoryImpl", "getLatestRates: ${e.message}")
             null
         }
-    }
-
-    override fun deleteCurrencyTable() = flow {
-        dao.deleteCurrencyTable()
-        emit(Resource.Success(true))
     }
 }

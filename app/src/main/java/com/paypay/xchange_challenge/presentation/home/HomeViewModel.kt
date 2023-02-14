@@ -21,7 +21,7 @@ class HomeViewModel(
 
     var selectedCurrency by mutableStateOf("USD")
     private var _getCurrentListing by mutableStateOf(CurrencyListState())
-    val getCurrentListing get() = _getCurrentListing
+    var getCurrentListing = _getCurrentListing
     var amount by mutableStateOf("") //<- amount to convert
     var convertedAmountList by mutableStateOf(_getCurrentListing.currencies) //<- converted amount
 
@@ -36,33 +36,6 @@ class HomeViewModel(
                     _getCurrentListing = CurrencyListState(
                         isLoading = false,
                         currencies = result.data ?: emptyList()
-                    )
-                }
-
-                is Resource.Error -> {
-                    _getCurrentListing = CurrencyListState(
-                        isLoading = false,
-                        error = result.message ?: "An unexpected error occurred"
-                    )
-                }
-
-                is Resource.Loading -> {
-                    _getCurrentListing = CurrencyListState(
-                        isLoading = true
-                    )
-                }
-            }
-        }.launchIn(viewModelScope)
-    }
-
-
-    fun deleteCurrencyTable() {
-        exchangeRepo.deleteCurrencyTable().onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    _getCurrentListing = CurrencyListState(
-                        isLoading = false,
-                        currencies = emptyList()
                     )
                 }
 
