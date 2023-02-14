@@ -11,7 +11,6 @@ import com.paypay.xchange_challenge.domain.repository.ExchangeRepository
 import com.paypay.xchange_challenge.presentation.home.HomeViewModel
 import com.paypay.xchange_challenge.worker.SyncWorker
 import io.ktor.client.*
-import io.ktor.client.engine.android.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
@@ -30,7 +29,7 @@ val appModule = module {
         ).build()
     }
     single {
-        HttpClient(Android) {
+        HttpClient {
             install(HttpTimeout) {
                 requestTimeoutMillis = 2000
             }
