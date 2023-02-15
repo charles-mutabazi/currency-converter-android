@@ -98,7 +98,7 @@ fun HomeScreenComposable(
                     )
                     if (viewModel.getCurrentListing.isLoading) {
                         Text(
-                            text = "Fetching currencies for the first time...",
+                            text = "Fetching currencies...",
                             style = MaterialTheme.typography.labelSmall
                         )
                     }

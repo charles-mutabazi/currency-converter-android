@@ -64,6 +64,7 @@ class HomeViewModel(
             }
 
             selectedCurrency?.let {
+                //convert to USD  since the free api returns rates in USD
                 val selectedInUSD = amountToConvert / selectedCurrency.rate
 
                 //convert to other currencies
