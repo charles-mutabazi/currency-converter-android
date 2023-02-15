@@ -34,7 +34,6 @@ class ExchangeListingRepositoryImpl(
 
             if (shouldLoadFromCache) {
                 emit(Resource.Success(localListings.map { it.toCurrencyListing() }))
-                println("Loading from cache")
                 return@flow
             }
 
@@ -43,7 +42,6 @@ class ExchangeListingRepositoryImpl(
                 db.currencyDao.insertCurrencyListing(getRemoteCurrencies()!!.map {
                     it.toCurrencyListingEntity()
                 })
-                println("====insert remote data into db====")
 
                 //update the rates
                 getLatestRates()?.let { rates ->
@@ -53,8 +51,6 @@ class ExchangeListingRepositoryImpl(
                 emit(Resource.Success(
                     db.currencyDao.getCurrencyListings().map { it.toCurrencyListing() }
                 ))
-
-                println("====now getting from LOCAL DB====")
             } else {
                 emit(Resource.Error("An unexpected error occurred"))
             }
