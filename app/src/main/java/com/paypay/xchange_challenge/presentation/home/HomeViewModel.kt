@@ -20,34 +20,33 @@ class HomeViewModel(
 ) : ViewModel() {
 
     var selectedCurrency by mutableStateOf("USD")
-    private var _getCurrentListing by mutableStateOf(CurrencyListState())
-    var getCurrentListing = _getCurrentListing
+    var getCurrentListing by mutableStateOf(CurrencyListState())
     var amount by mutableStateOf("") //<- amount to convert
-    var convertedAmountList by mutableStateOf(_getCurrentListing.currencies) //<- converted amount
+    var convertedAmountList by mutableStateOf(getCurrentListing.currencies) //<- converted amount
 
     init {
         getExchangeRates()
     }
 
-    private fun getExchangeRates() {
+    fun getExchangeRates() {
         exchangeRepo.getCurrencyList().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _getCurrentListing = CurrencyListState(
+                    getCurrentListing = CurrencyListState(
                         isLoading = false,
                         currencies = result.data ?: emptyList()
                     )
                 }
 
                 is Resource.Error -> {
-                    _getCurrentListing = CurrencyListState(
+                    getCurrentListing = CurrencyListState(
                         isLoading = false,
                         error = result.message ?: "An unexpected error occurred"
                     )
                 }
 
                 is Resource.Loading -> {
-                    _getCurrentListing = CurrencyListState(
+                    getCurrentListing = CurrencyListState(
                         isLoading = true
                     )
                 }

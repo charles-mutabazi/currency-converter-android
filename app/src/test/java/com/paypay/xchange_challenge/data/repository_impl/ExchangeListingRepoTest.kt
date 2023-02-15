@@ -16,7 +16,6 @@ import io.ktor.http.*
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -32,7 +31,7 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import kotlin.test.assertEquals
 
-
+@OptIn(ExperimentalCoroutinesApi::class)
 class ExchangeListingRepositoryImplTest : KoinTest {
 
     private lateinit var client: HttpClient
@@ -61,7 +60,7 @@ class ExchangeListingRepositoryImplTest : KoinTest {
     fun stopKoinAfterTest() = stopKoin()
 
     @Test
-    fun `getLatestRates should return the expected result`() = runBlocking {
+    fun `getLatestRates should return the expected result`() = runTest {
         client = mockClient(
             Json.encodeToString(fakeRatesDTO()),
             HttpStatusCode.OK
@@ -74,7 +73,7 @@ class ExchangeListingRepositoryImplTest : KoinTest {
     }
 
     @Test
-    fun `getRemoteCurrencies should return the expected result`() = runBlocking {
+    fun `getRemoteCurrencies should return the expected result`() = runTest {
         client = mockClient(
             Json.encodeToString(fakeCurrencies()),
             HttpStatusCode.OK
@@ -86,20 +85,18 @@ class ExchangeListingRepositoryImplTest : KoinTest {
         assertEquals(expectedResult, result)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `getCurrencyList should return list from local db when fetchFromRemote is false and local listings are available`(): Unit =
-        runTest {
-            // Given
-            val expectedListings = fakeCurrencyListingEntities()
-            val db = mockk<ExchangeDatabase>()
+    fun `getCurrencyList should return list from db when fetchFromRemote is false`() = runTest {
+        // Given
+        val expectedListings = fakeCurrencyListingEntities()
+        val db = mockk<ExchangeDatabase>()
 
-            coEvery { db.currencyDao.getCurrencyListings() } returns expectedListings
-            val returnedDBListing = db.currencyDao.getCurrencyListings()
+        coEvery { db.currencyDao.getCurrencyListings() } returns expectedListings
+        val returnedDBListing = db.currencyDao.getCurrencyListings()
 
 
-            // When
-            repository = mockk()
+        // When
+        repository = mockk()
             every { repository.getCurrencyList(fetchFromRemote = false) } returns flowOf(
                 Resource.Success(
                     expectedListings.map { it.toCurrencyListing() })
@@ -112,19 +109,17 @@ class ExchangeListingRepositoryImplTest : KoinTest {
             coVerify { db.currencyDao.getCurrencyListings() }
         }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `getCurrencyList should return list from remote api when fetchFromRemote is true`() =
-        runTest {
-            // Given
-            val expectedListings = fakeCurrencyListingEntities()
-            val db = mockk<ExchangeDatabase>()
+    fun `getCurrencyList should return list from api when fetchFromRemote is true`() = runTest {
+        // Given
+        val expectedListings = fakeCurrencyListingEntities()
+        val db = mockk<ExchangeDatabase>()
 
-            coEvery { db.currencyDao.insertCurrencyListing(any()) } returns Unit
-            db.currencyDao.insertCurrencyListing(fakeCurrencyListingEntities())
+        coEvery { db.currencyDao.insertCurrencyListing(any()) } returns Unit
+        db.currencyDao.insertCurrencyListing(fakeCurrencyListingEntities())
 
-            coEvery { db.currencyDao.updateCurrencyListingTx(any()) } returns Unit
-            db.currencyDao.updateCurrencyListingTx(mockk())
+        coEvery { db.currencyDao.updateCurrencyListingTx(any()) } returns Unit
+        db.currencyDao.updateCurrencyListingTx(mockk())
 
             coEvery { db.currencyDao.getCurrencyListings() } returns expectedListings
             val returnedDBListing = db.currencyDao.getCurrencyListings()

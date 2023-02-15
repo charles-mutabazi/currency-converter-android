@@ -38,8 +38,8 @@ class ExchangeListingRepositoryImpl(
             }
 
             // cache the result to local db
-            getRemoteCurrencies()?.let { listing ->
-                db.currencyDao.insertCurrencyListing(listing.map {
+            if (getRemoteCurrencies() != null) {
+                db.currencyDao.insertCurrencyListing(getRemoteCurrencies()!!.map {
                     it.toCurrencyListingEntity()
                 })
 
@@ -51,6 +51,8 @@ class ExchangeListingRepositoryImpl(
                 emit(Resource.Success(
                     data = db.currencyDao.getCurrencyListings().map { it.toCurrencyListing() }
                 ))
+            } else {
+                emit(Resource.Error("An unexpected error occurred"))
             }
         }
 
