@@ -60,31 +60,34 @@ fun HomeScreenComposable(
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         leadingIcon = {
-                            Box {
-
-                            }
-                            TextButton(onClick = { expanded = true }) {
-                                Text(
-                                    text = viewModel.selectedCurrency,
-                                    modifier = Modifier.padding(end = 8.dp)
-                                )
-                                Icon(
-                                    painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
-                                    contentDescription = "currency symbol",
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(MaterialTheme.shapes.small)
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false }
-                            ) {
-                                currencies.forEach { currency ->
-                                    DropdownMenuItem(text = { Text(currency.symbol) }, onClick = {
-                                        viewModel.selectedCurrency = currency.symbol
-                                        expanded = false
-                                    })
+                            if (viewModel.getCurrentListing.isLoading) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            } else {
+                                TextButton(onClick = { expanded = true }) {
+                                    Text(
+                                        text = viewModel.selectedCurrency,
+                                        modifier = Modifier.padding(end = 8.dp)
+                                    )
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
+                                        contentDescription = "currency symbol",
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clip(MaterialTheme.shapes.small)
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    currencies.forEach { currency ->
+                                        DropdownMenuItem(
+                                            text = { Text(currency.symbol) },
+                                            onClick = {
+                                                viewModel.selectedCurrency = currency.symbol
+                                                expanded = false
+                                            })
+                                    }
                                 }
                             }
                         },
@@ -93,6 +96,12 @@ fun HomeScreenComposable(
                             onDone = { viewModel.convertCurrency() }
                         ),
                     )
+                    if (viewModel.getCurrentListing.isLoading) {
+                        Text(
+                            text = "Fetching currencies for the first time...",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
 
                     Row(
                         modifier = Modifier
