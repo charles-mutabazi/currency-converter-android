@@ -66,7 +66,7 @@ fun CurrencyList(vm: HomeViewModel) {
 
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = "%.2f".format(currency.rate), //<-- formatted to 2 decimal places
+                        text = "${currency.rate}", //<-- formatted to 2 decimal places
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )

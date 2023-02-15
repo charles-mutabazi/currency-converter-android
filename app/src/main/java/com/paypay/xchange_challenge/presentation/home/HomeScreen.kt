@@ -4,6 +4,7 @@
  */
 package com.paypay.xchange_challenge.presentation.home
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,6 +21,7 @@ import com.paypay.xchange_challenge.R
 import com.paypay.xchange_challenge.presentation.home.components.CurrencyList
 import org.koin.androidx.compose.getViewModel
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenComposable(
@@ -28,86 +30,90 @@ fun HomeScreenComposable(
     var amount by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     val currencies = viewModel.getCurrentListing.currencies
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(title = {
+                Text(text = "Currency Xchange", fontWeight = FontWeight.Bold)
+            })
+        },
     ) {
-        Text(
-            text = "Currency Xchange",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        Card(modifier = Modifier.padding(bottom = 16.dp)) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                OutlinedTextField(
-                    placeholder = {
-                        Text(
-                            text = "Enter amount",
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    value = amount,
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-                    onValueChange = { amount = it; viewModel.amount = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    leadingIcon = {
-                        Box {
-
-                        }
-                        TextButton(onClick = { expanded = true }) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(horizontal = 16.dp)
+        ) {
+            Card(modifier = Modifier.padding(bottom = 16.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    OutlinedTextField(
+                        placeholder = {
                             Text(
-                                text = viewModel.selectedCurrency,
-                                modifier = Modifier.padding(end = 8.dp)
+                                text = "Enter amount",
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.fillMaxWidth()
                             )
-                            Icon(
-                                painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
-                                contentDescription = "currency symbol",
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clip(MaterialTheme.shapes.small)
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            currencies.forEach { currency ->
-                                DropdownMenuItem(text = { Text(currency.symbol) }, onClick = {
-                                    viewModel.selectedCurrency = currency.symbol
-                                    expanded = false
-                                })
-                            }
-                        }
-                    },
-                    singleLine = true,
-                    keyboardActions = KeyboardActions(
-                        onDone = { viewModel.convertCurrency() }
-                    ),
-                )
+                        },
+                        value = amount,
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
+                        onValueChange = { amount = it; viewModel.amount = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        leadingIcon = {
+                            Box {
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ) {
-                    Column {
-                        Text(text = "Base Currency")
-                        Text(
-                            text = "USD", //hardcoded for now
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Button(onClick = { viewModel.convertCurrency() }) {
-                        Text("Get Rates")
+                            }
+                            TextButton(onClick = { expanded = true }) {
+                                Text(
+                                    text = viewModel.selectedCurrency,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                                Icon(
+                                    painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
+                                    contentDescription = "currency symbol",
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(MaterialTheme.shapes.small)
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                currencies.forEach { currency ->
+                                    DropdownMenuItem(text = { Text(currency.symbol) }, onClick = {
+                                        viewModel.selectedCurrency = currency.symbol
+                                        expanded = false
+                                    })
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        keyboardActions = KeyboardActions(
+                            onDone = { viewModel.convertCurrency() }
+                        ),
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp)
+                    ) {
+                        Column {
+                            Text(text = "Base Currency")
+                            Text(
+                                text = "USD", //hardcoded for now
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        Button(onClick = { viewModel.convertCurrency() }) {
+                            Text("Get Rates")
+                        }
                     }
                 }
             }
+            CurrencyList(vm = viewModel)
         }
-        CurrencyList(vm = viewModel)
     }
 }
